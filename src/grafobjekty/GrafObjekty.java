@@ -7,6 +7,7 @@ package grafobjekty;
 
 import java.awt.HeadlessException;
 import javax.swing.JFrame;
+import Ostatni.Menu;
 
 /**
  *
@@ -17,9 +18,9 @@ public class GrafObjekty extends JFrame {
     public GrafObjekty() throws HeadlessException {
         this.setTitle("Grafické objekty");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        HerniPanel panel = new HerniPanel();
-        this.add(panel);
         this.setResizable(false);
+        Menu menu = new Menu();
+        this.add(menu);
         this.pack();
     }
 

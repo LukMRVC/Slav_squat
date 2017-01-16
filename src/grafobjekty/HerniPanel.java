@@ -14,12 +14,14 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
@@ -34,6 +36,7 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
     public static final int KONZOLE_PEASANT = 80;
     public static final int PCMR = 20;
     
+    private String nickname;
     private int sirkaPanelu = 1000;
     private int vyskaPanelu = 600;
     private int bullets, score;
@@ -46,9 +49,26 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
     private boolean jump = false;
     private int drop;
     
+    java.awt.Window menu;
+    
     private JLabel lblScore, lblBullets, lblScoreCount, lblBulletsCount;
     
     public HerniPanel() {
+        shots = new ArrayList<>();
+        droplets = new ArrayList<>();
+        drop = 1;
+        lblScore = new JLabel("Skore:");
+        lblBullets = new JLabel("Naboje:");
+        lblScore.setBounds(26, 12, 52, 15);
+        lblBullets.setBounds(855, 12, 104, 15);
+        init();
+        start();
+        this.repaint();
+    }
+    
+    public HerniPanel(java.awt.Window menu, String nickname) {
+        this.nickname = nickname;
+        this.menu = menu;
         shots = new ArrayList<>();
         droplets = new ArrayList<>();
         drop = 1;
@@ -77,7 +97,7 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
         addMouseListener(this);
         pt = new Platforma(this, sirkaPanelu, vyskaPanelu);
         pt.setBarva(Color.gray);
-        postava = new Obrazek(this, "slav_squat2.png", 500-50, 420);
+        postava = new Obrazek(this, "slav_squat2.png", 450, 420);
         
         lblScoreCount = new JLabel("");
         lblScoreCount.setBounds(85, 12, 52, 15);
@@ -90,6 +110,20 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
     
     private void start() {
     	
+    }
+    
+    private void restart(){
+        droplets.clear();
+        shots.clear();
+        bullets = score = 0;
+        lblScoreCount.setText("0");
+        lblBulletsCount.setText("0");
+        drop = 1;
+        postava.setY(420);
+        postava.setX(450);
+        this.repaint();
+        casovac.start();
+        jump = false;
     }
     
     private void fire(){
@@ -117,7 +151,8 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
 	    	for(Iterator<Tvar> iterator = droplets.iterator(); iterator.hasNext(); ) {
 	    		Tvar value = iterator.next();
 	    		value.setY(value.getY()+((Ctverec) value).getSpeed());
-	    		fellOnBoris(value);
+	    		if(fellOnBoris(value))
+                            break;
 	    		if(value.getY() >= this.vyskaPanelu){
 	    			iterator.remove();
 	    			score += 50;
@@ -153,12 +188,24 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
     }
     
     
-    private void fellOnBoris(Tvar c){
+    private boolean fellOnBoris(Tvar c){
     	if((c.getX() >= postava.hitbox.getX() && c.getX() <= postava.hitbox.getX()+postava.hitbox.getRozmer()) 
     			&& (c.getY() >= postava.hitbox.getY()) && (c.getY() <= postava.hitbox.getY() + postava.hitbox.getRozmer()) ){
     		casovac.stop();
-    		System.out.println("You are dead.");
+                String[] options = new String[] { "Play Again", "Back to menu" };
+    		int response = JOptionPane.showOptionDialog(this, "You died, western spy", "You died",
+                        JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+                if(response == 0){
+                    restart();
+                    return true;
+                }
+                else{
+                    javax.swing.SwingUtilities.getWindowAncestor(HerniPanel.this).dispose();
+                    menu.setVisible(true);
+                    return true;
+                }
     	}
+        return false;
     }
     
     @Override

@@ -64,6 +64,11 @@ public class Obrazek{
     	 this.y = x;
     	 hitbox.y = x;
     }
+    
+    public void setX(int x){
+        this.x = x;
+        hitbox.x = x;
+    }
    
     
     public void vykresli(Graphics g){

@@ -12,10 +12,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -185,6 +188,21 @@ public class HerniPanel extends JPanel implements ActionListener,  KeyListener {
     	if((c.hitbox.getX() >= postava.hitbox.getX() && c.hitbox.getX() <= postava.hitbox.getX()+postava.hitbox.getRozmer()) 
     			&& (c.hitbox.getY() >= postava.hitbox.getY()) && (c.hitbox.getY() <= postava.hitbox.getY() + postava.hitbox.getRozmer()) ){
     		casovac.stop();
+    		URL url;
+			try {
+				url = this.getClass().getResource("explosion.gif");
+				Icon icon = new ImageIcon(url);
+				JLabel label = new JLabel(icon);
+	    		label.setBounds(c.getX()-110, c.hitbox.getY()-110, 200, 200);
+	    		label.setVisible(true);
+	    		this.add(label);
+	    		this.repaint();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    		
+    		
                 String[] options = new String[] { "Play Again", "Back to menu" };
     		int response = JOptionPane.showOptionDialog(this, "You died, western spy", "You died",
                         JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);

@@ -22,11 +22,26 @@ import javax.swing.Timer;
 public class Obrazek{
     private BufferedImage img = null;
     private String src = "";
-    int x, y;
+    private int x, y;
     Ctverec hitbox;
     private boolean fall;
     
+    //kontruktor bomb
+    public Obrazek(HerniPanel panel, String src, int x, int y, int speed){
+    	this.src = src;
+    	this.x = x;
+    	this.y = y;
+    	try{
+            img = ImageIO.read(new File(src));
+        } catch(IOException e){
+            System.out.println("Invalid Path");
+        }
+    	hitbox = new Ctverec(panel, 30, speed);
+    	hitbox.setX(x);
+    	hitbox.setY(y+81);
+    }
     
+    //kontruktor postavy
     public Obrazek(HerniPanel panel, String src,int x,int y){
         this.src = src;
         this.x = x;
@@ -39,7 +54,7 @@ public class Obrazek{
         }
         hitbox = new Ctverec(panel, 110);
         hitbox.setX(this.getX());
-        hitbox.setY(this.getY());
+        hitbox.setY(this.getY()-20);
     }
     
     public void moveRight(){
@@ -62,7 +77,7 @@ public class Obrazek{
     
     public void setY(int x){
     	 this.y = x;
-    	 hitbox.y = x;
+    	 hitbox.y = 81 + x;
     }
     
     public void setX(int x){

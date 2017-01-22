@@ -12,19 +12,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 import javax.swing.Timer;
+
+import Ostatni.DatabaseHelper;
 
 
 
@@ -32,7 +29,7 @@ import javax.swing.Timer;
  *
  * @author ucitel
  */
-public class HerniPanel extends JPanel implements ActionListener, MouseListener, KeyListener {
+public class HerniPanel extends JPanel implements ActionListener,  KeyListener {
     public static final int KONZOLE_PEASANT = 80;
     public static final int PCMR = 20;
     
@@ -40,7 +37,8 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
     private int sirkaPanelu = 1000;
     private int vyskaPanelu = 600;
     private int bullets, score;
-    private ArrayList<Tvar> shots, droplets;
+    private ArrayList<Tvar> shots;
+    private ArrayList<Obrazek> droplets;
     private Tvar aktivni;
     private Timer casovac;
     
@@ -48,12 +46,14 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
     private Platforma pt;
     private boolean jump = false;
     private int drop;
+    private String bombSrc = "nuke.png";
     
     java.awt.Window menu;
     
     private JLabel lblScore, lblBullets, lblScoreCount, lblBulletsCount;
     
     public HerniPanel() {
+    	
         shots = new ArrayList<>();
         droplets = new ArrayList<>();
         drop = 1;
@@ -62,7 +62,6 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
         lblScore.setBounds(26, 12, 52, 15);
         lblBullets.setBounds(855, 12, 104, 15);
         init();
-        start();
         this.repaint();
     }
     
@@ -77,7 +76,6 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
         lblScore.setBounds(26, 12, 52, 15);
         lblBullets.setBounds(855, 12, 104, 15);
         init();
-        start();
         this.repaint();
     }
     
@@ -94,11 +92,9 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
         casovac.setInitialDelay(700);
         casovac.start();
         addKeyListener(this);
-        addMouseListener(this);
         pt = new Platforma(this, sirkaPanelu, vyskaPanelu);
         pt.setBarva(Color.gray);
         postava = new Obrazek(this, "slav_squat2.png", 450, 420);
-        
         lblScoreCount = new JLabel("");
         lblScoreCount.setBounds(85, 12, 52, 15);
         this.add(lblScoreCount);
@@ -108,9 +104,6 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
         this.add(lblBulletsCount);
     }
     
-    private void start() {
-    	
-    }
     
     private void restart(){
         droplets.clear();
@@ -148,9 +141,9 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
 
     private void Drop(){
     	if(!droplets.isEmpty()){
-	    	for(Iterator<Tvar> iterator = droplets.iterator(); iterator.hasNext(); ) {
-	    		Tvar value = iterator.next();
-	    		value.setY(value.getY()+((Ctverec) value).getSpeed());
+	    	for(Iterator<Obrazek> iterator = droplets.iterator(); iterator.hasNext(); ) {
+	    		Obrazek value = iterator.next();
+	    		value.setY(value.getY()+((Obrazek) value).hitbox.getSpeed());
 	    		if(fellOnBoris(value))
                             break;
 	    		if(value.getY() >= this.vyskaPanelu){
@@ -158,7 +151,7 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
 	    			score += 50;
 	    			lblScoreCount.setText(Integer.toString(score));
 	    			if(score % 200 == 0){
-	    				bullets += 3;
+	    				bullets += 1;
 	    				lblBulletsCount.setText(Integer.toString(bullets));
 	    			}
 	    		}
@@ -170,14 +163,14 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
     
     private boolean collision(Tvar c){
     	
-    	for(Iterator<Tvar> iterator = droplets.iterator();iterator.hasNext();){
-    		Tvar t = iterator.next();
-    		if((c.getX() >= t.getX() && c.getX() <= t.getX()+((Ctverec)t).getRozmer()) && (c.getY() - t.getY() <=0)){
+    	for(Iterator<Obrazek> iterator = droplets.iterator();iterator.hasNext();){
+    		Obrazek t = iterator.next();
+    		if((c.getX() >= t.getX() && c.getX() <= t.getX()+((Obrazek)t).hitbox.getRozmer()) && (c.getY() - t.hitbox.getY() <=0)){
     			iterator.remove();
     			score += 50;
     			lblScoreCount.setText(Integer.toString(score));
     			if(score % 200 == 0){
-    				bullets += 3;
+    				bullets += 1;
     				lblBulletsCount.setText(Integer.toString(bullets));
     			}
     			return true;
@@ -188,9 +181,9 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
     }
     
     
-    private boolean fellOnBoris(Tvar c){
-    	if((c.getX() >= postava.hitbox.getX() && c.getX() <= postava.hitbox.getX()+postava.hitbox.getRozmer()) 
-    			&& (c.getY() >= postava.hitbox.getY()) && (c.getY() <= postava.hitbox.getY() + postava.hitbox.getRozmer()) ){
+    private boolean fellOnBoris(Obrazek c){
+    	if((c.hitbox.getX() >= postava.hitbox.getX() && c.hitbox.getX() <= postava.hitbox.getX()+postava.hitbox.getRozmer()) 
+    			&& (c.hitbox.getY() >= postava.hitbox.getY()) && (c.hitbox.getY() <= postava.hitbox.getY() + postava.hitbox.getRozmer()) ){
     		casovac.stop();
                 String[] options = new String[] { "Play Again", "Back to menu" };
     		int response = JOptionPane.showOptionDialog(this, "You died, western spy", "You died",
@@ -202,6 +195,8 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
                 else{
                     javax.swing.SwingUtilities.getWindowAncestor(HerniPanel.this).dispose();
                     menu.setVisible(true);
+                    DatabaseHelper dbh = new DatabaseHelper();
+                    dbh.insert(nickname, score);
                     return true;
                 }
     	}
@@ -214,7 +209,7 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
        for(Tvar o: shots){
     	   o.vykresli(g);
        }
-       for(Tvar o: droplets){
+       for(Obrazek o: droplets){
     	   o.vykresli(g);
        }
        pt.vykresli(g);
@@ -228,7 +223,7 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
     	moveBullet();
     	Drop();
     	if(drop % 50 == 0){
-    		droplets.add(new Ctverec(this, 30, (int) Math.round(Math.random()*9+1)));
+    		droplets.add(new Obrazek(this, bombSrc, (int) Math.round(Math.random()*sirkaPanelu+1),0,(int) Math.round(Math.random()*9+1) ));
     		drop = 1;
     	}
     	else
@@ -239,57 +234,17 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
         this.repaint(); // metoda, která překreslí panel
     }
 
-    @Override
-    public void mouseClicked(MouseEvent e) {
-    /*    aktivni = null;
-        for( Tvar o : objekty ){
-            if(o.detekujKurzor(e.getX(), e.getY())){
-                System.out.println(o.getX() + " " + o.getY());
-                aktivni = o;
-                break;
-            }
-        }
-        
-        this.requestFocus(true);
-        this.repaint();
-        */
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-       // throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e) {
-    //    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-      //  throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void keyTyped(KeyEvent e) {
-     //   throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
     
     @Override
     public void keyPressed(KeyEvent e) {
 //        System.out.println(e.getKeyCode());
     	switch(e.getKeyCode()){
         case KeyEvent.VK_LEFT:
+        	if(postava.getX() <= 0){} else
             postava.moveLeft();
             break;
         case KeyEvent.VK_RIGHT:
+        	if(postava.getX() >= 860){} else
             postava.moveRight();
             break;
         case KeyEvent.VK_UP:
@@ -304,4 +259,10 @@ public class HerniPanel extends JPanel implements ActionListener, MouseListener,
     public void keyReleased(KeyEvent e) {
      //   throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+	@Override
+	public void keyTyped(KeyEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
 }

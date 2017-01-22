@@ -16,12 +16,13 @@ import Ostatni.Menu;
 public class GrafObjekty extends JFrame {
 
     public GrafObjekty() throws HeadlessException {
-        this.setTitle("Grafické objekty");
+        this.setTitle("Slav Squat - The Game");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setResizable(false);
         Menu menu = new Menu();
-        this.add(menu);
+        this.setContentPane(menu);
         this.pack();
+
     }
 
         

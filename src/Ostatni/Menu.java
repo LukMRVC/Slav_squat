@@ -6,24 +6,43 @@
 package Ostatni;
 
 import grafobjekty.HerniPanel;
+
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 /**
  *
  * @author student
  */
 public class Menu extends javax.swing.JPanel {
-
-    /**
+	DatabaseHelper dbh;
+	Container contain;
+	DefaultTableModel model;
+	JButton btnBack;
+	JScrollPane scrollPane;
+	/**
      * Creates new form Menu
      */
     public Menu() {
         this.setPreferredSize(new Dimension(400, 300));
         this.setSize(new Dimension(400,300));
         initComponents();
+        dbh = new DatabaseHelper();
     }
 
     /**
@@ -36,10 +55,12 @@ public class Menu extends javax.swing.JPanel {
     private void initComponents() {
 
         exit = new javax.swing.JButton();
+        exit.setBounds(140, 178, 117, 30);
         scoreboard = new javax.swing.JButton();
+        scoreboard.setBounds(140, 135, 117, 30);
         initGame = new javax.swing.JButton();
+        initGame.setBounds(140, 93, 117, 30);
 
-        setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         exit.setText("Exit");
         exit.addActionListener(new java.awt.event.ActionListener() {
@@ -47,32 +68,119 @@ public class Menu extends javax.swing.JPanel {
                 exitActionPerformed(evt);
             }
         });
-        add(exit, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 180, 120, 40));
+        this.setLayout(null);
+        this.add(exit);
 
-        scoreboard.setText("Scoreboard");
-        add(scoreboard, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 130, 120, 40));
-
+        this.scoreboard.setText("Scoreboard");
+        this.add(scoreboard);
+        
+        scoreboard.addActionListener(new java.awt.event.ActionListener() {
+        	public void actionPerformed(java.awt.event.ActionEvent evt){
+        		scoreboardActionPerformed(evt);
+        	}
+        });
+        
         initGame.setText("Start");
         initGame.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 initGameActionPerformed(evt);
             }
         });
-        add(initGame, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 80, 120, 40));
+        add(initGame);
+        
+        
+        
+        btnBack = new JButton();
+    	btnBack.setText("Back to Menu");
+    	
+    	scrollPane = new JScrollPane();
+    	JTable actualTable = new JTable();
+    	model  = new DefaultTableModel(
+				new Object[][] {
+				},
+				new String[] {
+					"Nickname", "Score"
+				}
+			) {
+				Class[] columnTypes = new Class[] {
+					String.class, Integer.class
+				};
+				public Class getColumnClass(int columnIndex) {
+					return columnTypes[columnIndex];
+				}
+			};
+		actualTable.setModel(model);
+		scrollPane.setViewportView(actualTable);
+		scrollPane.setBounds(100, 50, 200, 200);
+		btnBack.setBounds(100, 250, 200, 30);
+		scrollPane.setVisible(false);
+		btnBack.setVisible(false);
+		add(scrollPane);
+		add(btnBack);
+		btnBack.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+            	backToMenuActionPerformed(evt);
+            }
+        });
+        
     }// </editor-fold>//GEN-END:initComponents
 
     private void initGameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_initGameActionPerformed
-        System.out.println("Musim to vyresit.");
-        JFrame frame = new JFrame();
-        frame.setTitle("Slav Squat");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setResizable(false);
-        frame.add(new HerniPanel(javax.swing.SwingUtilities.getWindowAncestor(Menu.this), JOptionPane.showInputDialog(this, "Enter nickname")));
-        frame.pack();
-        frame.setVisible(true);
-        javax.swing.SwingUtilities.getWindowAncestor(Menu.this).setVisible(false);
+        String nickname = JOptionPane.showInputDialog(this, "Enter nickname");
+        if(!dbh.checkNickname(nickname)){
+        	JFrame frame = new JFrame();
+            frame.setTitle("Slav Squat");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setResizable(false);
+            frame.getContentPane().add(new HerniPanel(javax.swing.SwingUtilities.getWindowAncestor(Menu.this), nickname));
+            frame.pack();
+            frame.setVisible(true);
+            javax.swing.SwingUtilities.getWindowAncestor(Menu.this).setVisible(false);
+        }
+        else{
+        	JOptionPane.showMessageDialog(this, "This nickname is taken", "Nickname already exists", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_initGameActionPerformed
 
+    private void scoreboardActionPerformed(java.awt.event.ActionEvent evt){
+    	if (model.getRowCount() > 0) {
+    	    for (int i = model.getRowCount() - 1; i > -1; i--) {
+    	        model.removeRow(i);
+    	    }
+    	}
+
+    	HashMap<String, String[]> data = new HashMap<String, String[]>();    	
+		data = dbh.read();
+		String[] nicks = data.get("nickname");
+		String[] scores = data.get("score");
+		//Neni nejlepsi zpusob, ale fungovat to bude
+		int i = 0; 
+		while((i < nicks.length) && nicks[i] != null ){
+			model.addRow(new Object[] { nicks[i], Integer.parseInt(scores[i]) }  );
+			++i;
+		}
+		
+		Component[] components = this.getComponents();
+		for(Component c : components){
+			c.setVisible(false);
+		}
+		btnBack.setVisible(true);
+		scrollPane.setVisible(true);
+		this.repaint();
+		this.revalidate();
+    }
+    
+    private void backToMenuActionPerformed(java.awt.event.ActionEvent evt){
+    	Component[] components = this.getComponents();
+    	for(Component c : components){
+    		c.setVisible(true);
+    	}
+    	btnBack.setVisible(false);
+    	scrollPane.setVisible(false);
+    	this.repaint();
+    	this.revalidate();
+    }
+    
     private void exitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitActionPerformed
         System.exit(0);
     }//GEN-LAST:event_exitActionPerformed
